@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="50%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <filter id="s">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#f43f5e" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <path d="M50 88C50 88 8 58 8 32C8 15 20 5 34 5C43 5 48 11 50 18C52 11 57 5 66 5C80 5 92 15 92 32C92 58 50 88 50 88Z" fill="url(#g)" filter="url(#s)"/>
+  <text x="50" y="55" text-anchor="middle" font-family="Georgia,serif" font-size="28" font-weight="bold" font-style="italic" fill="white" opacity="0.92">M</text>
+</svg>
