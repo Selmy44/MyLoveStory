@@ -86,4 +86,30 @@ export async function initDb() {
     ALTER TABLE gallery_items
     ADD COLUMN IF NOT EXISTS mime_type TEXT;
   `);
+
+  /* ── New: Dynamic Love Letters ── */
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS love_letters (
+      id SERIAL PRIMARY KEY,
+      content TEXT NOT NULL,
+      author TEXT DEFAULT 'Partner',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+  `);
+
+  /* Seed initial letter if empty */
+  const letterCount = await pool.query("SELECT COUNT(*) FROM love_letters");
+  if (parseInt(letterCount.rows[0].count) === 0) {
+    const initialText = `My Love,
+
+Every picture in here is a heartbeat. Every song is a memory. Every video is a moment I never want to lose.
+
+You are my peace, my spark, and my sweetest chapter. This space is just a small reflection of how beautiful you make my life.
+
+Forever yours.`;
+    await pool.query(
+      "INSERT INTO love_letters (content, author) VALUES ($1, $2)",
+      [initialText, "Me"]
+    );
+  }
 }

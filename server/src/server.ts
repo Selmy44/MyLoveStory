@@ -449,6 +449,42 @@ app.delete("/api/gallery/:id", async (req, res) => {
   res.status(204).send();
 });
 
+/* ── Love Letters Endpoints ── */
+app.get("/api/letters", async (req, res) => {
+  const result = await pool.query(
+    "SELECT * FROM love_letters ORDER BY created_at DESC"
+  );
+  res.json(result.rows);
+});
+
+app.post("/api/letters", async (req, res) => {
+  const { content, author } = req.body;
+  if (!content || typeof content !== "string" || !content.trim()) {
+    res.status(400).json({ error: "Content is required." });
+    return;
+  }
+  const safeAuthor = author && typeof author === "string" ? author.trim() : "Me";
+  
+  const result = await pool.query(
+    "INSERT INTO love_letters (content, author) VALUES ($1, $2) RETURNING *;",
+    [content.trim(), safeAuthor]
+  );
+  res.status(201).json(result.rows[0]);
+});
+
+app.delete("/api/letters/:id", async (req, res) => {
+  const { id } = req.params;
+  const result = await pool.query(
+    "DELETE FROM love_letters WHERE id = $1 RETURNING id;",
+    [id]
+  );
+  if (result.rowCount === 0) {
+    res.status(404).json({ error: "Letter not found." });
+    return;
+  }
+  res.status(204).send();
+});
+
 /* ═══════════════════════════════════════════════════════
    START
    ═══════════════════════════════════════════════════════ */

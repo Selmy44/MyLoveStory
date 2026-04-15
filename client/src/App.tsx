@@ -34,13 +34,28 @@ type YouTubeResult = {
   };
 };
 
+type LoveLetter = {
+  id: number;
+  content: string;
+  author: string;
+  created_at: string;
+};
+
 function App() {
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
-  const [activeSection, setActiveSection] = useState("home");
+  const [loveLetters, setLoveLetters] = useState<LoveLetter[]>([]);
+  const [newLetterContent, setNewLetterContent] = useState("");
+  const [activeSection, setActiveSection] = useState(() => localStorage.getItem("monia-active-section") || "home");
+  const [showLetterHistory, setShowLetterHistory] = useState(false);
+  const [selectedArchiveLetter, setSelectedArchiveLetter] = useState<LoveLetter | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [isSidebarPinned, setIsSidebarPinned] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("monia-active-section", activeSection);
+  }, [activeSection]);
   const [showIntro, setShowIntro] = useState<boolean>(() => {
     return localStorage.getItem(INTRO_DONE_KEY) !== "1";
   });
@@ -105,20 +120,48 @@ function App() {
   }, [playlist, selectedTrack]);
 
   async function loadData() {
-    const [playlistRes, galleryRes] = await Promise.all([
+    const [playlistRes, galleryRes, lettersRes] = await Promise.all([
       fetch(`${API_BASE}/api/playlist`),
       fetch(`${API_BASE}/api/gallery`),
+      fetch(`${API_BASE}/api/letters`),
     ]);
 
-    if (!playlistRes.ok || !galleryRes.ok) {
+    if (!playlistRes.ok || !galleryRes.ok || !lettersRes.ok) {
       throw new Error("Could not load data");
     }
 
     const nextPlaylist = (await playlistRes.json()) as PlaylistItem[];
     const nextGallery = (await galleryRes.json()) as GalleryItem[];
+    const nextLetters = (await lettersRes.json()) as LoveLetter[];
     setPlaylist(nextPlaylist);
     setGallery(nextGallery);
+    setLoveLetters(nextLetters);
     setSelectedTrackId((prev) => prev ?? nextPlaylist[0]?.id ?? null);
+  }
+
+  async function submitLoveLetter(e: FormEvent) {
+    e.preventDefault();
+    if (!newLetterContent.trim()) return;
+    setIsBusy(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/letters`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newLetterContent, author: "Partner" })
+      });
+      if (res.ok) {
+        const newLetter = await res.json() as LoveLetter;
+        setLoveLetters([newLetter, ...loveLetters]);
+        setNewLetterContent("");
+        setFlashMessage("Letter saved forever! ♥");
+        setTimeout(() => setFlashMessage(null), 3000);
+      }
+    } catch {
+      setFlashMessage("Failed to save letter.");
+      setTimeout(() => setFlashMessage(null), 3000);
+    } finally {
+      setIsBusy(false);
+    }
   }
 
   function resolveMediaUrl(fileUrl: string) {
@@ -205,6 +248,12 @@ function App() {
 
   async function deleteMemory(id: number) {
     await fetch(`${API_BASE}/api/gallery/${id}`, { method: "DELETE" });
+    await loadData();
+  }
+
+  async function deleteLetter(id: number) {
+    if (!window.confirm("Delete this memory forever?")) return;
+    await fetch(`${API_BASE}/api/letters/${id}`, { method: "DELETE" });
     await loadData();
   }
 
@@ -568,6 +617,21 @@ function App() {
               </button>
             ))}
           </nav>
+          
+          <div className="sidebar-footer">
+            <button
+              className="side-btn logout-btn"
+              onClick={() => {
+                if(window.confirm('Are you sure you want to log out? This will lock the app.')) {
+                  localStorage.removeItem('finest-monia-unlocked');
+                  window.location.reload();
+                }
+              }}
+            >
+              <span className="side-icon">🚪</span>
+              <span className="nav-label">Logout</span>
+            </button>
+          </div>
         </aside>
 
         <main className="content">
@@ -1017,37 +1081,38 @@ function App() {
 
           {activeSection === "music" && (
             <section className="glass-card">
-              <h3>Music Queue</h3>
-              <p>Drag and drop tracks to reorder. Click any track to select it on Home player.</p>
-              <div className="queue-list">
+              <div className="moments-header">
+                <div>
+                  <h3>Private Studio Queue</h3>
+                  <p className="muted">Your saved romantic tracks. Click any track to play it on the Home player.</p>
+                </div>
+              </div>
+              <div className="deezer-grid">
                 {playlist.map((track) => (
                   <article
-                    className="queue-item"
+                    className="deezer-card clickable"
                     key={track.id}
-                    draggable
                     onClick={() => setSelectedTrackId(track.id)}
-                    onDragStart={() => setDraggedTrackId(track.id)}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={() => void handleTrackDrop(track.id)}
                   >
-                    <div className="queue-meta">
-                      <strong>{track.title}</strong>
-                      <p>{track.artist}</p>
+                    <div className="deezer-row">
+                      <img
+                        className="deezer-cover"
+                        style={{ width: "56px", height: "56px", objectFit: "cover", borderRadius: "10px" }}
+                        src={track.cover_url || "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&q=80"}
+                        alt=""
+                      />
+                      <div className="deezer-meta">
+                        <strong title={track.title}>{track.title}</strong>
+                        <p>{track.artist}</p>
+                      </div>
                     </div>
-                        <div className="queue-menu-wrap">
-                          <button className="kebab-btn">⋮</button>
-                          <div className="queue-menu">
-                            <button
-                              className="danger-text"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                void deleteTrack(track.id);
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
+                    <button 
+                      className="ghost danger-text" 
+                      onClick={(e) => { e.stopPropagation(); void deleteTrack(track.id); }} 
+                      type="button"
+                    >
+                      Delete Track
+                    </button>
                   </article>
                 ))}
               </div>
@@ -1058,38 +1123,42 @@ function App() {
             <section className="glass-card">
               <div className="moments-header">
                 <div>
-                  <h3>Search Music (Spotify)</h3>
-                  <p className="muted">Search a song, preview if available, and save it to your playlist.</p>
+                  <h3>Search YouTube Music</h3>
+                  <p className="muted">Find the perfect romantic YouTube song and save it to your Private Studio queue.</p>
                 </div>
               </div>
 
-              <form onSubmit={searchSpotify} className="deezer-search">
+              <form onSubmit={searchYouTube} className="deezer-search">
                 <input
                   className="moments-search"
                   value={musicSearchQuery}
                   onChange={(e) => setMusicSearchQuery(e.target.value)}
-                  placeholder="Search on Spotify..."
+                  placeholder="Search on YouTube..."
                 />
                 <button disabled={isSearchingMusic}>{isSearchingMusic ? "Searching…" : "Search"}</button>
               </form>
               {musicSearchError && <p className="empty-copy">{musicSearchError}</p>}
 
               <div className="deezer-grid">
-                {musicSearchResults.map((track) => (
-                  <article key={track.id} className="deezer-card">
+                {youtubeResults.map((item) => (
+                  <article key={item.id.videoId} className="deezer-card">
                     <div className="deezer-row">
                       <img
                         className="deezer-cover"
-                        src={track.album?.images?.[0]?.url ?? ""}
+                        style={{ width: "56px", height: "56px", objectFit: "cover", borderRadius: "10px" }}
+                        src={
+                          item.snippet?.thumbnails?.medium?.url ??
+                          item.snippet?.thumbnails?.high?.url ??
+                          ""
+                        }
                         alt=""
                       />
                       <div className="deezer-meta">
-                        <strong title={track.name}>{track.name}</strong>
-                        <p>{track.artists?.map((a) => a.name).join(", ")}</p>
+                        <strong title={item.snippet?.title}>{item.snippet?.title}</strong>
+                        <p>{item.snippet?.channelTitle}</p>
                       </div>
                     </div>
-                    {track.preview_url ? <audio controls src={track.preview_url} /> : <p>No preview.</p>}
-                    <button disabled={isBusy} onClick={() => void saveSpotifyTrack(track)} type="button">
+                    <button disabled={isBusy} onClick={() => void saveYouTubeTrack(item)} type="button">
                       Save to Playlist
                     </button>
                   </article>
@@ -1228,51 +1297,171 @@ function App() {
           )}
 
           {activeSection === "love letter" && (
-            <section className="letter-section">
+            <div className={`letter-split-layout ${showLetterHistory ? 'history-open' : 'history-closed'}`} style={{ position: 'relative' }}>
               <div className="letter-hearts" aria-hidden="true">
-                {Array.from({ length: 18 }).map((_, i) => (
+                {Array.from({ length: 32 }).map((_, i) => (
                   <span
                     key={i}
                     className="floating-heart"
                     style={{
-                      left: `${4 + Math.random() * 92}%`,
+                      left: `${Math.random() * 100}%`,
                       animationDelay: `${Math.random() * 10}s`,
-                      animationDuration: `${6 + Math.random() * 6}s`,
-                      fontSize: `${0.5 + Math.random() * 1}rem`,
+                      animationDuration: `${6 + Math.random() * 8}s`,
+                      fontSize: `${0.6 + Math.random() * 1.2}rem`,
                     }}
                   >
                     ♥
                   </span>
                 ))}
               </div>
-              <div className="letter-card">
-                <div className="letter-wax">♥</div>
-                <h2>A Letter For You</h2>
-                <div className="letter-divider">
-                  <span>✦</span>
+
+              <div className="letter-main" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="letter-top-actions">
+                  <button 
+                    className="side-btn archive-toggle-btn-far" 
+                    onClick={() => setShowLetterHistory(!showLetterHistory)}
+                  >
+                    {showLetterHistory ? "📜 Hide Archive" : "📚 View Archive"}
+                  </button>
                 </div>
-                <p>{LETTER_TEXT}</p>
-                <div className="letter-closing">
-                  <span className="letter-sign">~ With all my love ~</span>
+
+                <section className="letter-section" style={{ minHeight: 'auto' }}>
+                  <div className="letter-card">
+                    <div className="letter-wax">♥</div>
+                    <h2>A Whisper From My Heart</h2>
+                    <div className="letter-divider">
+                      <span>✦</span>
+                    </div>
+                    <p style={{ whiteSpace: 'pre-wrap' }}>
+                      {loveLetters[0]?.content || LETTER_TEXT}
+                    </p>
+                    <div className="letter-closing">
+                      <span className="letter-sign">~ Forever & Always ~</span>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="glass-card letter-composer" style={{ marginTop: '2rem' }}>
+                  <h3>Write a New Letter</h3>
+                  <textarea
+                    placeholder="Type your message here..."
+                    value={newLetterContent}
+                    onChange={(e) => setNewLetterContent(e.target.value)}
+                  />
+                  <button 
+                    disabled={isBusy || !newLetterContent.trim()} 
+                    onClick={submitLoveLetter}
+                  >
+                    {isBusy ? "Saving..." : "Save to History ♥"}
+                  </button>
                 </div>
               </div>
-            </section>
+
+              {showLetterHistory && (
+                <aside className="letter-history" style={{ animation: 'fade-in 0.4s ease' }}>
+                  <h3 className="history-title">History of Us</h3>
+                  <div className="history-stack">
+                    {loveLetters.length === 0 ? (
+                      <p className="muted" style={{ textAlign: 'center', marginTop: '2rem' }}>
+                        No letters yet.
+                      </p>
+                    ) : (
+                      loveLetters.map((letter) => (
+                        <article 
+                          key={letter.id} 
+                          className="history-item clickable"
+                          onClick={() => setSelectedArchiveLetter(letter)}
+                        >
+                          <button 
+                            className="archive-delete-x"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void deleteLetter(letter.id);
+                            }}
+                          >
+                            ✖
+                          </button>
+                          <div className="history-wax">♥</div>
+                          <p>{letter.content.length > 80 ? letter.content.substring(0, 77) + "..." : letter.content}</p>
+                          <div className="history-date-row">
+                            <span className="history-date">
+                              {new Date(letter.created_at).toLocaleDateString(undefined, { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric' 
+                              })}
+                            </span>
+                          </div>
+                        </article>
+                      ))
+                    )}
+                  </div>
+                </aside>
+              )}
+
+              {selectedArchiveLetter && (
+                <div className="viewer" role="dialog" aria-modal="true" onClick={() => setSelectedArchiveLetter(null)}>
+                  <div className="viewer-inner letter-modal-stage" onClick={(e) => e.stopPropagation()}>
+                    <button className="viewer-close modern-close" type="button" onClick={() => setSelectedArchiveLetter(null)}>
+                      ✕
+                    </button>
+                    <div className="letter-card cinematic-parchment">
+                      <div className="letter-wax-large">♥</div>
+                      <span className="letter-decoration top-left">❦</span>
+                      <span className="letter-decoration bottom-right">❦</span>
+                      
+                      <div className="letter-modal-head">
+                        <h3>A Moment from the Heart</h3>
+                      </div>
+
+                      <div className="letter-divider">
+                        <span>✦ ✦ ✦</span>
+                      </div>
+                      
+                      <div className="letter-content-scroll">
+                        <p>{selectedArchiveLetter.content}</p>
+                      </div>
+
+                      <div className="letter-closing">
+                        <span className="letter-sign">~ Forever & Always ~</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {activeSection === "private studio" && (
             <section className="studio-grid">
-              <form className="glass-card" onSubmit={submitPlaylist}>
-                <h3>Add Song / Music Video</h3>
-                <p>The system auto-detects title, artist, and media type from the file.</p>
-                <input name="media" type="file" accept="audio/*,video/*" required />
-                <button disabled={isBusy}>Add to Playlist</button>
+              <form className="glass-card upload-card content-card" onSubmit={submitPlaylist}>
+                <div className="upload-icon">🎵</div>
+                <div className="upload-meta">
+                  <h3>Add Music / Video</h3>
+                  <p>Drop your songs or music videos here. The system will auto-detect everything.</p>
+                </div>
+                <div className="file-input-wrapper">
+                  <input name="media" type="file" id="music-upload" accept="audio/*,video/*" required />
+                  <label htmlFor="music-upload" className="file-label">
+                    <span>Click to choose file</span>
+                  </label>
+                </div>
+                <button className="upload-btn" disabled={isBusy}>Upload to Studio</button>
               </form>
 
-              <form className="glass-card" onSubmit={submitGallery}>
-                <h3>Add Picture / Video Moment</h3>
-                <p>Just choose files. The system auto-detects image/video type.</p>
-                <input name="media" type="file" accept="image/*,video/*" required />
-                <button disabled={isBusy}>Add to Gallery</button>
+              <form className="glass-card upload-card gallery-card" onSubmit={submitGallery}>
+                <div className="upload-icon">📸</div>
+                <div className="upload-meta">
+                  <h3>Add Moment</h3>
+                  <p>Upload a romantic picture or video to your shared gallery.</p>
+                </div>
+                <div className="file-input-wrapper">
+                  <input name="media" type="file" id="gallery-upload" accept="image/*,video/*" required />
+                  <label htmlFor="gallery-upload" className="file-label">
+                    <span>Choose memory</span>
+                  </label>
+                </div>
+                <button className="upload-btn" disabled={isBusy}>Save to Gallery</button>
               </form>
             </section>
           )}
