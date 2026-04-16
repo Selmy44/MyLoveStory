@@ -100,7 +100,7 @@ export async function initDb() {
   /* Seed initial letter if empty */
   const letterCount = await pool.query("SELECT COUNT(*) FROM love_letters");
   if (parseInt(letterCount.rows[0].count) === 0) {
-    const initialText = `My Love,
+    const initialText = `Dear Finest,
 
 Every picture in here is a heartbeat. Every song is a memory. Every video is a moment I never want to lose.
 
