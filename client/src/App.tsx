@@ -8,7 +8,7 @@ const HER_NAME = import.meta.env.VITE_HER_NAME ?? "Monia";
 const LOVE_PASSCODE = import.meta.env.VITE_LOVE_PASSCODE ?? "2016";
 const UNLOCK_KEY = "finest-monia-unlocked";
 const INTRO_DONE_KEY = "finest-monia-intro-done";
-const LETTER_TEXT = `My Love,
+const LETTER_TEXT = `Dear Finest,
 
 Every picture in here is a heartbeat. Every song is a memory. Every video is a moment I never want to lose.
 
@@ -204,9 +204,9 @@ function App() {
     setIsBusy(true);
 
     if (mediaFile instanceof File) {
-      const isVideo = mediaFile.type.startsWith("video/") || 
-                      mediaFile.type === "application/mp4" ||
-                      /\.(mp4|mov|avi|wmv|flv|webm|mkv)$/i.test(mediaFile.name);
+      const isVideo = mediaFile.type.startsWith("video/") ||
+        mediaFile.type === "application/mp4" ||
+        /\.(mp4|mov|avi|wmv|flv|webm|mkv)$/i.test(mediaFile.name);
       formData.append("mediaType", isVideo ? "video" : "audio");
     }
 
@@ -233,9 +233,9 @@ function App() {
     setIsBusy(true);
 
     if (mediaFile instanceof File) {
-      const isVideo = mediaFile.type.startsWith("video/") || 
-                      mediaFile.type === "application/mp4" ||
-                      /\.(mp4|mov|avi|wmv|flv|webm|mkv)$/i.test(mediaFile.name);
+      const isVideo = mediaFile.type.startsWith("video/") ||
+        mediaFile.type === "application/mp4" ||
+        /\.(mp4|mov|avi|wmv|flv|webm|mkv)$/i.test(mediaFile.name);
       formData.append("mediaType", isVideo ? "video" : "image");
     }
 
@@ -454,7 +454,7 @@ function App() {
 
   useEffect(() => {
     if (activeSection === "home") {
-      audioRef.current?.play().catch(() => {});
+      audioRef.current?.play().catch(() => { });
       if (selectedTrack?.source === "youtube" && ytPlayerRef.current?.contentWindow) {
         setEmbeddedPlaying(true);
         ytPlayerRef.current.contentWindow.postMessage(
@@ -1159,7 +1159,7 @@ function App() {
               <div className="moments-header">
                 <div>
                   <h3>Private Studio Queue</h3>
-                  <p className="muted">Your saved romantic tracks. Click any track to play it on the Home player.</p>
+                  <p className="muted">Our saved romantic tracks. Click any track to play it on the Home player.</p>
                 </div>
               </div>
               <div className="deezer-grid">
@@ -1267,7 +1267,7 @@ function App() {
               <div className="moments-header">
                 <div>
                   <h3>Moments</h3>
-                  <p className="muted">All your memories — clean, organized, and beautiful.</p>
+                  <p className="muted">All our memories. Finest you're the best thing that ever happened to me.</p>
                 </div>
 
                 <div className="moments-controls">
