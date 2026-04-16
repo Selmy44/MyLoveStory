@@ -50,6 +50,8 @@ function App() {
   const [showLetterHistory, setShowLetterHistory] = useState(false);
   const [selectedArchiveLetter, setSelectedArchiveLetter] = useState<LoveLetter | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [musicFileName, setMusicFileName] = useState<string | null>(null);
+  const [galleryFileName, setGalleryFileName] = useState<string | null>(null);
   const [isSidebarPinned, setIsSidebarPinned] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
 
@@ -208,8 +210,9 @@ function App() {
     setIsBusy(false);
     if (!res.ok) return;
     form.reset();
+    setMusicFileName(null);
     if (mediaFile instanceof File) {
-      setFlashMessage(`"${mediaFile.name}" is added.`);
+      setFlashMessage(`✅ "${mediaFile.name}" has been added to your studio!`);
     }
     await loadData();
   }
@@ -229,8 +232,9 @@ function App() {
     setIsBusy(false);
     if (!res.ok) return;
     form.reset();
+    setGalleryFileName(null);
     if (mediaFile instanceof File) {
-      setFlashMessage(`"${mediaFile.name}" is added.`);
+      setFlashMessage(`✅ "${mediaFile.name}" is now in your gallery!`);
     }
     await loadData();
   }
@@ -1256,7 +1260,6 @@ function App() {
                         </>
                       ) : (
                         <>
-                          <h4 title={memory.title}>{memory.title}</h4>
                           <div className="moment-buttons">
                             <button
                               type="button"
@@ -1328,7 +1331,7 @@ function App() {
                 <section className="letter-section" style={{ minHeight: 'auto' }}>
                   <div className="letter-card">
                     <div className="letter-wax">♥</div>
-                    <h2>A Whisper From My Heart</h2>
+                    <h2>Words I Keep For You</h2>
                     <div className="letter-divider">
                       <span>✦</span>
                     </div>
@@ -1441,12 +1444,30 @@ function App() {
                   <p>Drop your songs or music videos here. The system will auto-detect everything.</p>
                 </div>
                 <div className="file-input-wrapper">
-                  <input name="media" type="file" id="music-upload" accept="audio/*,video/*" required />
-                  <label htmlFor="music-upload" className="file-label">
-                    <span>Click to choose file</span>
+                  <input
+                    name="media"
+                    type="file"
+                    id="music-upload"
+                    accept="audio/*,video/*"
+                    required
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      setMusicFileName(f ? f.name : null);
+                    }}
+                  />
+                  <label htmlFor="music-upload" className={`file-label ${musicFileName ? 'file-selected' : ''}`}>
+                    {musicFileName ? (
+                      <span className="file-name-display">
+                        <span className="file-check">✓</span> {musicFileName}
+                      </span>
+                    ) : (
+                      <span>🎶 Click to choose a song or video</span>
+                    )}
                   </label>
                 </div>
-                <button className="upload-btn" disabled={isBusy}>Upload to Studio</button>
+                <button className="upload-btn" disabled={isBusy || !musicFileName}>
+                  {isBusy ? "Uploading..." : "Upload to Studio"}
+                </button>
               </form>
 
               <form className="glass-card upload-card gallery-card" onSubmit={submitGallery}>
@@ -1456,12 +1477,30 @@ function App() {
                   <p>Upload a romantic picture or video to your shared gallery.</p>
                 </div>
                 <div className="file-input-wrapper">
-                  <input name="media" type="file" id="gallery-upload" accept="image/*,video/*" required />
-                  <label htmlFor="gallery-upload" className="file-label">
-                    <span>Choose memory</span>
+                  <input
+                    name="media"
+                    type="file"
+                    id="gallery-upload"
+                    accept="image/*,video/*"
+                    required
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      setGalleryFileName(f ? f.name : null);
+                    }}
+                  />
+                  <label htmlFor="gallery-upload" className={`file-label ${galleryFileName ? 'file-selected' : ''}`}>
+                    {galleryFileName ? (
+                      <span className="file-name-display">
+                        <span className="file-check">✓</span> {galleryFileName}
+                      </span>
+                    ) : (
+                      <span>📷 Click to choose a photo or video</span>
+                    )}
                   </label>
                 </div>
-                <button className="upload-btn" disabled={isBusy}>Save to Gallery</button>
+                <button className="upload-btn" disabled={isBusy || !galleryFileName}>
+                  {isBusy ? "Uploading..." : "Save to Gallery"}
+                </button>
               </form>
             </section>
           )}
