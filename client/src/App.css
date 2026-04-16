@@ -2220,19 +2220,103 @@ button:active {
    RESPONSIVE
    ═══════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
+  /* Main Layout Shell */
   .layout-shell {
     grid-template-columns: 1fr;
+    padding-bottom: 75px; /* Leave space for bottom nav */
   }
 
+  /* Turn Sidebar into a Bottom "App-Style" Navigation Bar */
   .sidebar {
-    position: static;
-    height: auto;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: 0;
     width: 100% !important;
+    height: 75px;
+    flex-direction: row;
+    padding: 0;
+    justify-content: space-around;
+    align-items: center;
+    border-right: none;
+    border-top: 1px solid rgba(244, 63, 94, 0.15);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(24px);
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(131, 44, 110, 0.08);
+  }
+
+  /* Hide the big logo on small screens */
+  .sidebar-logo {
+    display: none;
+  }
+
+  .side-nav {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-evenly;
+    gap: 0;
+  }
+
+  .sidebar-footer {
+    margin: 0;
+    padding: 0;
+    border-top: none;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Format all buttons to be vertical icons + text */
+  .side-btn {
+    flex-direction: column;
+    padding: 0.4rem;
+    border: none;
+    background: transparent;
+    gap: 0.25rem;
+    width: auto;
+    min-width: 60px;
+    border-radius: 12px;
+  }
+
+  .side-icon {
+    font-size: 1.35rem;
+    width: auto;
   }
 
   .nav-label {
     opacity: 1;
     transform: none;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .side-btn:hover {
+    transform: none;
+    background: rgba(244, 63, 94, 0.06);
+  }
+
+  /* Active state for bottom nav */
+  .side-btn.active {
+    background: transparent;
+    color: #f43f5e;
+    box-shadow: none;
+  }
+  
+  .side-btn.active .side-icon {
+    transform: scale(1.15);
+    text-shadow: 0 4px 15px rgba(244, 63, 94, 0.35);
+  }
+
+  /* Content Padding Fixes */
+  .content {
+    padding: 1rem 1rem 2rem;
+  }
+
+  .studio-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .player-shell,
@@ -2241,28 +2325,28 @@ button:active {
   }
 
   .media-stage {
-    min-height: 430px;
-    padding-inline: 2.4rem;
+    min-height: 380px;
+    padding-inline: 1.5rem;
   }
 
   .stage-track {
-    height: 325px;
-  }
-
-  .stage-card {
-    width: 215px;
     height: 300px;
   }
 
+  .stage-card {
+    width: 200px;
+    height: 280px;
+  }
+
   .letter-card {
-    padding: 2rem 1.5rem;
+    padding: 1.8rem 1.2rem;
   }
 
   .letter-card p {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 
   .moments-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
 }
