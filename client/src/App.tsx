@@ -428,7 +428,45 @@ function App() {
     await loadData();
   }
 
+  async function moveTrack(trackId: number, direction: -1 | 1) {
+    const idx = playlist.findIndex((t) => t.id === trackId);
+    if (idx < 0) return;
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= playlist.length) return;
+
+    const next = [...playlist];
+    const [moved] = next.splice(idx, 1);
+    next.splice(targetIdx, 0, moved);
+    setPlaylist(next);
+    await savePlaylistOrder(next);
+  }
+
+  function pauseMainPlayer() {
+    audioRef.current?.pause();
+    if (ytPlayerRef.current?.contentWindow) {
+      ytPlayerRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+        "*"
+      );
+    }
+    setEmbeddedPlaying(false);
+  }
+
+  useEffect(() => {
+    if (activeSection === "home") {
+      audioRef.current?.play().catch(() => {});
+      if (selectedTrack?.source === "youtube" && ytPlayerRef.current?.contentWindow) {
+        setEmbeddedPlaying(true);
+        ytPlayerRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+          "*"
+        );
+      }
+    }
+  }, [activeSection, selectedTrack]);
+
   function openFullSpotify(trackId: string) {
+    pauseMainPlayer();
     setFullPlayerTrackId(trackId);
     setFlashMessage("Opening full player (Spotify)…");
     setTimeout(() => setFlashMessage(null), 1200);
@@ -436,11 +474,13 @@ function App() {
 
   function playYouTubeNow(videoId: string) {
     if (!videoId) return;
+    pauseMainPlayer();
     setYoutubePreviewId(videoId);
   }
 
   function playSpotifyNow(previewUrl: string | null) {
     if (!previewUrl) return;
+    pauseMainPlayer();
     setSpotifyPreviewUrl(previewUrl);
   }
 
@@ -1080,6 +1120,22 @@ function App() {
                           <button className="kebab-btn">⋮</button>
                           <div className="queue-menu">
                             <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void moveTrack(track.id, -1);
+                              }}
+                            >
+                              Move Up
+                            </button>
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void moveTrack(track.id, 1);
+                              }}
+                            >
+                              Move Down
+                            </button>
+                            <button
                               className="danger-text"
                               onClick={(event) => {
                                 event.stopPropagation();
@@ -1125,13 +1181,33 @@ function App() {
                         <p>{track.artist}</p>
                       </div>
                     </div>
-                    <button
-                      className="ghost danger-text"
-                      onClick={(e) => { e.stopPropagation(); void deleteTrack(track.id); }}
-                      type="button"
-                    >
-                      Delete Track
-                    </button>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        className="ghost"
+                        onClick={(e) => { e.stopPropagation(); void moveTrack(track.id, -1); }}
+                        type="button"
+                        aria-label="Move Up"
+                        title="Move Up"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        className="ghost"
+                        onClick={(e) => { e.stopPropagation(); void moveTrack(track.id, 1); }}
+                        type="button"
+                        aria-label="Move Down"
+                        title="Move Down"
+                      >
+                        ▼
+                      </button>
+                      <button
+                        className="ghost danger-text"
+                        onClick={(e) => { e.stopPropagation(); void deleteTrack(track.id); }}
+                        type="button"
+                      >
+                        Delete Track
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>
