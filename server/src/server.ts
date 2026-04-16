@@ -77,7 +77,7 @@ app.get("/api/media/playlist/:id", async (req, res) => {
 
   const row = result.rows[0];
   res.set("Content-Type", row.mime_type || "application/octet-stream");
-  res.set("Cache-Control", "public, max-age=86400");
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
   res.send(row.file_data);
 });
 
@@ -95,7 +95,7 @@ app.get("/api/media/gallery/:id", async (req, res) => {
 
   const row = result.rows[0];
   res.set("Content-Type", row.mime_type || "application/octet-stream");
-  res.set("Cache-Control", "public, max-age=86400");
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
   res.send(row.file_data);
 });
 

@@ -5,7 +5,7 @@ import type { GalleryItem, PlaylistItem } from "./types/media";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4000";
 const HER_NAME = import.meta.env.VITE_HER_NAME ?? "Monia";
-const LOVE_PASSCODE = import.meta.env.VITE_LOVE_PASSCODE ?? "2026";
+const LOVE_PASSCODE = import.meta.env.VITE_LOVE_PASSCODE ?? "2016";
 const UNLOCK_KEY = "finest-monia-unlocked";
 const INTRO_DONE_KEY = "finest-monia-intro-done";
 const LETTER_TEXT = `My Love,
@@ -54,6 +54,7 @@ function App() {
   const [galleryFileName, setGalleryFileName] = useState<string | null>(null);
   const [isSidebarPinned, setIsSidebarPinned] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("monia-active-section", activeSection);
@@ -552,7 +553,7 @@ function App() {
     return (
       <div className="lock-screen">
         <div className="lock-card">
-          <h1>Finest Monia</h1>
+          <h1>Finest World 🩵</h1>
           <p>A private world for only two souls.</p>
           <form onSubmit={unlockExperience} className="lock-form">
             <input
@@ -592,12 +593,12 @@ function App() {
             <svg viewBox="0 0 100 100" width="38" height="38" className="logo-heart">
               <defs>
                 <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#f43f5e"/>
-                  <stop offset="50%" stopColor="#fb7185"/>
-                  <stop offset="100%" stopColor="#c084fc"/>
+                  <stop offset="0%" stopColor="#f43f5e" />
+                  <stop offset="50%" stopColor="#fb7185" />
+                  <stop offset="100%" stopColor="#c084fc" />
                 </linearGradient>
               </defs>
-              <path d="M50 88C50 88 8 58 8 32C8 15 20 5 34 5C43 5 48 11 50 18C52 11 57 5 66 5C80 5 92 15 92 32C92 58 50 88 50 88Z" fill="url(#hg)"/>
+              <path d="M50 88C50 88 8 58 8 32C8 15 20 5 34 5C43 5 48 11 50 18C52 11 57 5 66 5C80 5 92 15 92 32C92 58 50 88 50 88Z" fill="url(#hg)" />
               <text x="50" y="55" textAnchor="middle" fontFamily="Georgia,serif" fontSize="28" fontWeight="bold" fontStyle="italic" fill="white" opacity="0.92">M</text>
             </svg>
             <span className="nav-label brand-name">Finest Monia</span>
@@ -621,16 +622,11 @@ function App() {
               </button>
             ))}
           </nav>
-          
+
           <div className="sidebar-footer">
             <button
               className="side-btn logout-btn"
-              onClick={() => {
-                if(window.confirm('Are you sure you want to log out? This will lock the app.')) {
-                  localStorage.removeItem('finest-monia-unlocked');
-                  window.location.reload();
-                }
-              }}
+              onClick={() => setShowLogoutConfirm(true)}
             >
               <span className="side-icon">🚪</span>
               <span className="nav-label">Logout</span>
@@ -675,14 +671,19 @@ function App() {
                           onClick={() => setMediaFocusIndex(index)}
                         >
                           {memory.media_type === "image" ? (
-                            <img src={`${API_BASE}${memory.file_url}`} alt={memory.title} />
+                            <img
+                              src={`${API_BASE}${memory.file_url}`}
+                              alt={memory.title}
+                              loading={index < 3 ? "eager" : "lazy"}
+                            />
                           ) : (
                             <video
                               src={`${API_BASE}${memory.file_url}`}
                               muted
                               loop
                               playsInline
-                              autoPlay
+                              autoPlay={offset === 0}
+                              preload={index < 3 ? "auto" : "metadata"}
                             />
                           )}
                         </article>
@@ -738,173 +739,173 @@ function App() {
                         </div>
                       </div>
                     </div>
-                      <form
-                          onSubmit={musicSource === "youtube" ? searchYouTube : searchSpotify}
-                          className="player-search-form"
-                        >
-                          <input
-                            className="player-search-input"
-                            value={musicSearchQuery}
-                            onChange={(e) => setMusicSearchQuery(e.target.value)}
-                            placeholder={
-                              musicSource === "youtube"
-                                ? "Search on YouTube…"
-                                : "Search on Spotify…"
-                            }
-                          />
-                          <button disabled={isSearchingMusic}>
-                            {isSearchingMusic ? "…" : "Search"}
-                          </button>
-                        </form>
-                        {musicSearchError && <p className="player-error">{musicSearchError}</p>}
+                    <form
+                      onSubmit={musicSource === "youtube" ? searchYouTube : searchSpotify}
+                      className="player-search-form"
+                    >
+                      <input
+                        className="player-search-input"
+                        value={musicSearchQuery}
+                        onChange={(e) => setMusicSearchQuery(e.target.value)}
+                        placeholder={
+                          musicSource === "youtube"
+                            ? "Search on YouTube…"
+                            : "Search on Spotify…"
+                        }
+                      />
+                      <button disabled={isSearchingMusic}>
+                        {isSearchingMusic ? "…" : "Search"}
+                      </button>
+                    </form>
+                    {musicSearchError && <p className="player-error">{musicSearchError}</p>}
 
-                        {musicSource === "youtube" ? (
-                          <>
-                            {youtubePreviewId && (
-                              <div className="player-full">
-                                <div className="player-full-head">
-                                  <span>Now playing from YouTube</span>
-                                </div>
-                                <iframe
-                                  title="YouTube Search Player"
-                                  src={`https://www.youtube.com/embed/${youtubePreviewId}?autoplay=1&rel=0`}
-                                  width="100%"
-                                  height="220"
-                                  frameBorder="0"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                />
-                              </div>
-                            )}
-
-                            <div className="player-results">
-                              {youtubeResults.slice(0, 6).map((item) => (
-                                <article
-                                  key={item.id.videoId}
-                                  className="player-result clickable"
-                                  onClick={() => playYouTubeNow(item.id.videoId)}
-                                >
-                                  <img
-                                    className="player-cover"
-                                    src={
-                                      item.snippet?.thumbnails?.medium?.url ??
-                                      item.snippet?.thumbnails?.high?.url ??
-                                      ""
-                                    }
-                                    alt=""
-                                    loading="lazy"
-                                  />
-                                  <div className="player-result-meta">
-                                    <strong title={item.snippet?.title}>{item.snippet?.title}</strong>
-                                    <p>{item.snippet?.channelTitle}</p>
-                                  </div>
-                                  <div className="player-result-actions">
-                                    <div className="player-result-buttons">
-                                      <button
-                                        disabled={isBusy}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          void saveYouTubeTrack(item);
-                                        }}
-                                        type="button"
-                                      >
-                                        Save
-                                      </button>
-                                    </div>
-                                  </div>
-                                </article>
-                              ))}
+                    {musicSource === "youtube" ? (
+                      <>
+                        {youtubePreviewId && (
+                          <div className="player-full">
+                            <div className="player-full-head">
+                              <span>Now playing from YouTube</span>
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            {spotifyPreviewUrl && (
-                              <div className="player-full">
-                                <div className="player-full-head">
-                                  <span>Now previewing from Spotify</span>
-                                </div>
-                                <audio ref={spotifyPreviewRef} controls autoPlay src={spotifyPreviewUrl} />
-                              </div>
-                            )}
+                            <iframe
+                              title="YouTube Search Player"
+                              src={`https://www.youtube.com/embed/${youtubePreviewId}?autoplay=1&rel=0`}
+                              width="100%"
+                              height="220"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          </div>
+                        )}
 
-                            {fullPlayerTrackId && (
-                              <div className="player-full">
-                                <div className="player-full-head">
-                                  <span>Full Spotify player</span>
+                        <div className="player-results">
+                          {youtubeResults.slice(0, 6).map((item) => (
+                            <article
+                              key={item.id.videoId}
+                              className="player-result clickable"
+                              onClick={() => playYouTubeNow(item.id.videoId)}
+                            >
+                              <img
+                                className="player-cover"
+                                src={
+                                  item.snippet?.thumbnails?.medium?.url ??
+                                  item.snippet?.thumbnails?.high?.url ??
+                                  ""
+                                }
+                                alt=""
+                                loading="lazy"
+                              />
+                              <div className="player-result-meta">
+                                <strong title={item.snippet?.title}>{item.snippet?.title}</strong>
+                                <p>{item.snippet?.channelTitle}</p>
+                              </div>
+                              <div className="player-result-actions">
+                                <div className="player-result-buttons">
+                                  <button
+                                    disabled={isBusy}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      void saveYouTubeTrack(item);
+                                    }}
+                                    type="button"
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {spotifyPreviewUrl && (
+                          <div className="player-full">
+                            <div className="player-full-head">
+                              <span>Now previewing from Spotify</span>
+                            </div>
+                            <audio ref={spotifyPreviewRef} controls autoPlay src={spotifyPreviewUrl} />
+                          </div>
+                        )}
+
+                        {fullPlayerTrackId && (
+                          <div className="player-full">
+                            <div className="player-full-head">
+                              <span>Full Spotify player</span>
+                              <button
+                                type="button"
+                                className="ghost"
+                                onClick={() => setFullPlayerTrackId(null)}
+                              >
+                                Close
+                              </button>
+                            </div>
+                            <iframe
+                              title="Spotify Player"
+                              src={`https://open.spotify.com/embed/track/${fullPlayerTrackId}?utm_source=generator&theme=0`}
+                              width="100%"
+                              height="152"
+                              frameBorder="0"
+                              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                            />
+                          </div>
+                        )}
+
+                        <div className="player-results">
+                          {musicSearchResults.slice(0, 6).map((track) => (
+                            <article
+                              key={track.id}
+                              className="player-result clickable"
+                              onClick={() => playSpotifyNow(track.preview_url)}
+                            >
+                              <img
+                                className="player-cover"
+                                src={track.album?.images?.[0]?.url ?? ""}
+                                alt=""
+                                loading="lazy"
+                              />
+                              <div className="player-result-meta">
+                                <strong title={track.name}>{track.name}</strong>
+                                <p>{track.artists?.map((a) => a.name).join(", ")}</p>
+                              </div>
+                              <div className="player-result-actions">
+                                {track.preview_url ? (
+                                  <audio controls src={track.preview_url} />
+                                ) : (
+                                  <p className="player-hint">No 30s preview for this track.</p>
+                                )}
+                                <div className="player-result-buttons">
                                   <button
                                     type="button"
                                     className="ghost"
-                                    onClick={() => setFullPlayerTrackId(null)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openFullSpotify(track.id);
+                                    }}
                                   >
-                                    Close
+                                    Full
+                                  </button>
+                                  <button
+                                    disabled={isBusy}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      void saveSpotifyTrack(track);
+                                    }}
+                                    type="button"
+                                  >
+                                    Save
                                   </button>
                                 </div>
-                                <iframe
-                                  title="Spotify Player"
-                                  src={`https://open.spotify.com/embed/track/${fullPlayerTrackId}?utm_source=generator&theme=0`}
-                                  width="100%"
-                                  height="152"
-                                  frameBorder="0"
-                                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                />
                               </div>
-                            )}
-
-                            <div className="player-results">
-                              {musicSearchResults.slice(0, 6).map((track) => (
-                                <article
-                                  key={track.id}
-                                  className="player-result clickable"
-                                  onClick={() => playSpotifyNow(track.preview_url)}
-                                >
-                                  <img
-                                    className="player-cover"
-                                    src={track.album?.images?.[0]?.url ?? ""}
-                                    alt=""
-                                    loading="lazy"
-                                  />
-                                  <div className="player-result-meta">
-                                    <strong title={track.name}>{track.name}</strong>
-                                    <p>{track.artists?.map((a) => a.name).join(", ")}</p>
-                                  </div>
-                                  <div className="player-result-actions">
-                                    {track.preview_url ? (
-                                      <audio controls src={track.preview_url} />
-                                    ) : (
-                                      <p className="player-hint">No 30s preview for this track.</p>
-                                    )}
-                                    <div className="player-result-buttons">
-                                      <button
-                                        type="button"
-                                        className="ghost"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          openFullSpotify(track.id);
-                                        }}
-                                      >
-                                        Full
-                                      </button>
-                                      <button
-                                        disabled={isBusy}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          void saveSpotifyTrack(track);
-                                        }}
-                                        type="button"
-                                      >
-                                        Save
-                                      </button>
-                                    </div>
-                                  </div>
-                                </article>
-                              ))}
-                            </div>
-                            <p className="player-hint">
-                              Spotify previews are optional. Use Full to stream via Spotify embed.
-                            </p>
-                          </>
-                        )}
-                    </div>
+                            </article>
+                          ))}
+                        </div>
+                        <p className="player-hint">
+                          Spotify previews are optional. Use Full to stream via Spotify embed.
+                        </p>
+                      </>
+                    )}
+                  </div>
 
                   <div className="now-top">
                     <div className="now-meta-inline">
@@ -944,7 +945,7 @@ function App() {
 
                       <div className="controls-row">
                         <button type="button" className="icon" aria-label="Shuffle" title="Shuffle">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" /></svg>
                         </button>
                         <button type="button" className="icon" onClick={prevTrack} aria-label="Previous">
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z" /></svg>
@@ -974,7 +975,7 @@ function App() {
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" /></svg>
                         </button>
                         <button type="button" className="icon" aria-label="Repeat" title="Repeat all">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" /></svg>
                         </button>
 
                         <div className="volume">
@@ -994,7 +995,7 @@ function App() {
                   {(selectedTrack?.source === "youtube" || selectedTrack?.source === "spotify") && (
                     <div className="controls-row embed-controls">
                       <button type="button" className="icon" aria-label="Shuffle" title="Shuffle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" /></svg>
                       </button>
                       <button type="button" className="icon" onClick={prevTrack} aria-label="Previous">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z" /></svg>
@@ -1015,7 +1016,7 @@ function App() {
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" /></svg>
                       </button>
                       <button type="button" className="icon" aria-label="Repeat" title="Repeat all">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" /></svg>
                       </button>
                     </div>
                   )}
@@ -1110,9 +1111,9 @@ function App() {
                         <p>{track.artist}</p>
                       </div>
                     </div>
-                    <button 
-                      className="ghost danger-text" 
-                      onClick={(e) => { e.stopPropagation(); void deleteTrack(track.id); }} 
+                    <button
+                      className="ghost danger-text"
+                      onClick={(e) => { e.stopPropagation(); void deleteTrack(track.id); }}
                       type="button"
                     >
                       Delete Track
@@ -1320,8 +1321,8 @@ function App() {
 
               <div className="letter-main" style={{ position: 'relative', zIndex: 1 }}>
                 <div className="letter-top-actions">
-                  <button 
-                    className="side-btn archive-toggle-btn-far" 
+                  <button
+                    className="side-btn archive-toggle-btn-far"
                     onClick={() => setShowLetterHistory(!showLetterHistory)}
                   >
                     {showLetterHistory ? "📜 Hide Archive" : "📚 View Archive"}
@@ -1351,8 +1352,8 @@ function App() {
                     value={newLetterContent}
                     onChange={(e) => setNewLetterContent(e.target.value)}
                   />
-                  <button 
-                    disabled={isBusy || !newLetterContent.trim()} 
+                  <button
+                    disabled={isBusy || !newLetterContent.trim()}
                     onClick={submitLoveLetter}
                   >
                     {isBusy ? "Saving..." : "Save to History ♥"}
@@ -1370,12 +1371,12 @@ function App() {
                       </p>
                     ) : (
                       loveLetters.map((letter) => (
-                        <article 
-                          key={letter.id} 
+                        <article
+                          key={letter.id}
                           className="history-item clickable"
                           onClick={() => setSelectedArchiveLetter(letter)}
                         >
-                          <button 
+                          <button
                             className="archive-delete-x"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1388,10 +1389,10 @@ function App() {
                           <p>{letter.content.length > 80 ? letter.content.substring(0, 77) + "..." : letter.content}</p>
                           <div className="history-date-row">
                             <span className="history-date">
-                              {new Date(letter.created_at).toLocaleDateString(undefined, { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric' 
+                              {new Date(letter.created_at).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
                               })}
                             </span>
                           </div>
@@ -1412,7 +1413,7 @@ function App() {
                       <div className="letter-wax-large">♥</div>
                       <span className="letter-decoration top-left">❦</span>
                       <span className="letter-decoration bottom-right">❦</span>
-                      
+
                       <div className="letter-modal-head">
                         <h3>A Moment from the Heart</h3>
                       </div>
@@ -1420,7 +1421,7 @@ function App() {
                       <div className="letter-divider">
                         <span>✦ ✦ ✦</span>
                       </div>
-                      
+
                       <div className="letter-content-scroll">
                         <p>{selectedArchiveLetter.content}</p>
                       </div>
@@ -1506,6 +1507,23 @@ function App() {
           )}
         </main>
       </div>
+      {showLogoutConfirm && (
+        <div className="viewer logout-overlay" role="dialog" aria-modal="true" onClick={() => setShowLogoutConfirm(false)}>
+          <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="logout-modal-icon">🔒</div>
+            <h3>Leaving So Soon?</h3>
+            <p>This will lock the app. You’ll need the passcode to get back in.</p>
+            <div className="logout-modal-actions">
+              <button className="logout-cancel" onClick={() => setShowLogoutConfirm(false)}>Stay Here</button>
+              <button className="logout-confirm" onClick={() => {
+                localStorage.removeItem('finest-monia-unlocked');
+                localStorage.removeItem('monia-active-section');
+                window.location.reload();
+              }}>Lock & Leave</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
