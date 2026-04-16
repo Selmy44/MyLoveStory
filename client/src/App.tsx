@@ -203,6 +203,13 @@ function App() {
     const mediaFile = formData.get("media");
     setIsBusy(true);
 
+    if (mediaFile instanceof File) {
+      const isVideo = mediaFile.type.startsWith("video/") || 
+                      mediaFile.type === "application/mp4" ||
+                      /\.(mp4|mov|avi|wmv|flv|webm|mkv)$/i.test(mediaFile.name);
+      formData.append("mediaType", isVideo ? "video" : "audio");
+    }
+
     const res = await fetch(`${API_BASE}/api/playlist`, {
       method: "POST",
       body: formData,
@@ -224,6 +231,13 @@ function App() {
     const formData = new FormData(form);
     const mediaFile = formData.get("media");
     setIsBusy(true);
+
+    if (mediaFile instanceof File) {
+      const isVideo = mediaFile.type.startsWith("video/") || 
+                      mediaFile.type === "application/mp4" ||
+                      /\.(mp4|mov|avi|wmv|flv|webm|mkv)$/i.test(mediaFile.name);
+      formData.append("mediaType", isVideo ? "video" : "image");
+    }
 
     const res = await fetch(`${API_BASE}/api/gallery`, {
       method: "POST",
