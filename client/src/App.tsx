@@ -553,7 +553,7 @@ function App() {
     return (
       <div className="lock-screen">
         <div className="lock-card">
-          <h1>Finest World 🩵</h1>
+          <h1>Finest 🩵</h1>
           <p>A private world for only two souls.</p>
           <form onSubmit={unlockExperience} className="lock-form">
             <input
@@ -709,7 +709,7 @@ function App() {
                   ))}
                 </div>
                 <div className="hero-overlay">
-                  <h2>Our Beautiful Story</h2>
+                  <h2>A Beautiful Story</h2>
                   <p>Every moment with you is my forever favorite ♥</p>
                 </div>
               </section>
