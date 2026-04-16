@@ -82,7 +82,7 @@ function App() {
   const [musicSearchResults, setMusicSearchResults] = useState<SpotifyTrack[]>([]);
   const [isSearchingMusic, setIsSearchingMusic] = useState(false);
   const [musicSearchError, setMusicSearchError] = useState<string | null>(null);
-  const [homeSearchOpen, setHomeSearchOpen] = useState(true);
+
   const [fullPlayerTrackId, setFullPlayerTrackId] = useState<string | null>(null);
   const [youtubePreviewId, setYoutubePreviewId] = useState<string | null>(null);
   const [spotifyPreviewUrl, setSpotifyPreviewUrl] = useState<string | null>(null);
